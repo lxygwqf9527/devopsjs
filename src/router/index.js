@@ -1,26 +1,52 @@
-import { createRouter, createWebHistory } from "vue-router";
-import Home from "../views/Home.vue";
+import Vue from "vue";
+import Router from "vue-router";
 
-const routes = [
+
+Vue.use(Router);
+
+/* Layout */
+
+import { makeModuleRoute } from "@/utils/router";
+
+import {makeRoute} from '@/utils/router';
+import Dashboard from '@/views/dashboard'
+import Form from '@/views/form'
+
+import Layout from '@/layout'
+
+export const constantRoutes = [
   {
-    path: "/",
-    name: "Home",
-    component: Home,
+    path: "/login",
+    component: () => import("@/views/login/index"),
+    hidden: true
   },
   {
-    path: "/about",
-    name: "About",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/About.vue"),
-  },
+    path: "/404",
+    component: () => import("@/components/error/404"),
+    hidden: true
+  }
 ];
 
-const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
-  routes,
-});
+export const asyncRoutes = [
+  makeModuleRoute("/","root", Layout, "", [
+    makeRoute('dashboard', 'Dashboard', Dashboard, { title: 'Dashboard', icon: 'dashboard'}),
+    makeRoute('form', 'Form', Form, { title: 'Form', icon: 'form'}, "form.view")
+  ]),
+  { path: "*", redirect: "/404", hidden: true }
+];
+const createRouter = () =>
+  new Router({
+    // mode: 'history', // require service support
+    scrollBehavior: () => ({ y: 0 }),
+    routes: constantRoutes
+  });
+
+const router = createRouter();
+
+// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
+export function resetRouter() {
+  const newRouter = createRouter();
+  router.matcher = newRouter.matcher; // reset router
+}
 
 export default router;
